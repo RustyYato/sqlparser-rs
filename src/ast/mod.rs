@@ -18,6 +18,8 @@ mod operator;
 mod query;
 mod value;
 
+use std::num::NonZeroU32;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -81,6 +83,57 @@ pub struct Ident {
     /// The starting quote if any. Valid quote characters are the single quote,
     /// double quote, backtick, and opening square bracket.
     pub quote_style: Option<char>,
+    pub id: AstId,
+}
+
+#[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct RawId(u32);
+
+#[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct AstId(pub RawId);
+
+impl RawId {
+    pub fn new(value: NonZeroU32) -> Self {
+        Self(value.get())
+    }
+
+    pub fn get(self) -> Option<NonZeroU32> {
+        NonZeroU32::new(self.0)
+    }
+
+    pub fn get_unchecked(self) -> u32 {
+        self.0
+    }
+
+    pub fn to_index_unchecked(self) -> usize {
+        self.0.wrapping_sub(1) as usize
+    }
+
+    pub fn is_null(self) -> bool {
+        self.0 == 0
+    }
+}
+
+impl fmt::Debug for RawId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.is_null() {
+            write!(f, "RawId(null)")
+        } else {
+            write!(f, "RawId({})", self.0)
+        }
+    }
+}
+
+impl fmt::Debug for AstId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.0.is_null() {
+            write!(f, "AstId(null)")
+        } else {
+            write!(f, "AstId({})", self.0 .0)
+        }
+    }
 }
 
 impl Ident {
@@ -92,6 +145,7 @@ impl Ident {
         Ident {
             value: value.into(),
             quote_style: None,
+            id: Default::default(),
         }
     }
 
@@ -105,6 +159,7 @@ impl Ident {
         Ident {
             value: value.into(),
             quote_style: Some(quote),
+            id: Default::default(),
         }
     }
 }
@@ -114,6 +169,7 @@ impl From<&str> for Ident {
         Ident {
             value: value.to_string(),
             quote_style: None,
+            id: Default::default(),
         }
     }
 }

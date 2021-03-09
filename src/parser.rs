@@ -3079,6 +3079,7 @@ impl Word {
         Ident {
             value: self.value.clone(),
             quote_style: self.quote_style,
+            id: Default::default(),
         }
     }
 }
