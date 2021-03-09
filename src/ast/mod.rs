@@ -79,11 +79,23 @@ where
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Ident {
     /// The value of the identifier without quotes.
-    pub value: String,
+    #[serde(serialize_with = "unicase_string_ser")]
+    #[serde(deserialize_with = "unicase_string_de")]
+    pub value: unicase::UniCase<String>,
     /// The starting quote if any. Valid quote characters are the single quote,
     /// double quote, backtick, and opening square bracket.
     pub quote_style: Option<char>,
     pub id: AstId,
+}
+
+#[cfg(feature = "serde")]
+fn unicase_string_ser<S: serde::Serializer>(value: &unicase::UniCase<String>, serializer: S) -> Result<S::Ok, S::Error> {
+    value.as_str().serialize(serializer)
+}
+
+#[cfg(feature = "serde")]
+fn unicase_string_de<'de, S: serde::Deserializer<'de>>(deserializer: S) -> Result<unicase::UniCase<String>, S::Error> {
+    serde::Deserialize::deserialize(deserializer).map(String::into)
 }
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -140,7 +152,7 @@ impl Ident {
     /// Create a new identifier with the given value and no quotes.
     pub fn new<S>(value: S) -> Self
     where
-        S: Into<String>,
+        S: Into<unicase::UniCase<String>>,
     {
         Ident {
             value: value.into(),
@@ -153,7 +165,7 @@ impl Ident {
     /// panics if the given quote is not a valid quote character.
     pub fn with_quote<S>(quote: char, value: S) -> Self
     where
-        S: Into<String>,
+        S: Into<unicase::UniCase<String>>,
     {
         assert!(quote == '\'' || quote == '"' || quote == '`' || quote == '[');
         Ident {
@@ -167,7 +179,7 @@ impl Ident {
 impl From<&str> for Ident {
     fn from(value: &str) -> Self {
         Ident {
-            value: value.to_string(),
+            value: value.to_string().into(),
             quote_style: None,
             id: Default::default(),
         }

@@ -2433,7 +2433,7 @@ impl<'a> Parser<'a> {
                     value: values,
                 });
             }
-        } else if variable.value == "TRANSACTION" && modifier.is_none() {
+        } else if variable.value.as_str() == "TRANSACTION" && modifier.is_none() {
             Ok(Statement::SetTransaction {
                 modes: self.parse_transaction_modes()?,
             })
@@ -3077,7 +3077,7 @@ impl<'a> Parser<'a> {
 impl Word {
     pub fn to_ident(&self) -> Ident {
         Ident {
-            value: self.value.clone(),
+            value: self.value.clone().into(),
             quote_style: self.quote_style,
             id: Default::default(),
         }

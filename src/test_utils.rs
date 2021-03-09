@@ -157,7 +157,7 @@ pub fn number(n: &'static str) -> Value {
     Value::Number(n.parse().unwrap(), false)
 }
 
-pub fn table_alias(name: impl Into<String>) -> Option<TableAlias> {
+pub fn table_alias(name: impl Into<unicase::UniCase<String>>) -> Option<TableAlias> {
     Some(TableAlias {
         name: Ident::new(name),
         columns: vec![],
