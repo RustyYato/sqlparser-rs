@@ -89,12 +89,17 @@ pub struct Ident {
 }
 
 #[cfg(feature = "serde")]
-fn unicase_string_ser<S: serde::Serializer>(value: &unicase::UniCase<String>, serializer: S) -> Result<S::Ok, S::Error> {
+fn unicase_string_ser<S: serde::Serializer>(
+    value: &unicase::UniCase<String>,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
     value.as_str().serialize(serializer)
 }
 
 #[cfg(feature = "serde")]
-fn unicase_string_de<'de, S: serde::Deserializer<'de>>(deserializer: S) -> Result<unicase::UniCase<String>, S::Error> {
+fn unicase_string_de<'de, S: serde::Deserializer<'de>>(
+    deserializer: S,
+) -> Result<unicase::UniCase<String>, S::Error> {
     serde::Deserialize::deserialize(deserializer).map(String::into)
 }
 
