@@ -105,11 +105,13 @@ fn unicase_string_de<'de, S: serde::Deserializer<'de>>(
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 pub struct RawId(u32);
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct AstId(pub RawId);
+#[cfg_attr(feature = "serde", serde(transparent))]
+pub struct AstId(RawId);
 
 impl RawId {
     pub fn new(value: NonZeroU32) -> Self {
@@ -130,6 +132,34 @@ impl RawId {
 
     pub fn is_null(self) -> bool {
         self.0 == 0
+    }
+
+    pub fn to_index(self) -> usize {
+        assert!(!self.is_null());
+        self.to_index_unchecked()
+    }
+}
+
+impl AstId {
+    pub const fn from_raw(raw: RawId) -> Self {
+        Self(raw)
+    }
+
+    pub const fn raw(self) -> RawId {
+        self.0
+    }
+
+    pub fn is_null(self) -> bool {
+        self.raw().is_null()
+    }
+
+    pub fn get(self) -> Option<NonZeroU32> {
+        self.raw().get()
+    }
+
+    pub fn to_index(self) -> usize {
+        assert!(!self.is_null());
+        self.raw().to_index_unchecked()
     }
 }
 
